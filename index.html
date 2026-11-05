@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>לוח שנה היסטורי - חודשים מספרים</title>
+  <link rel="stylesheet" href="fonts/assistant.css">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <h1 id="siteTitleDisplay">📅 חודשים מספרים</h1>
+      
+      <div class="header-controls">
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="globalSearch" placeholder="חפש אירועים..." aria-label="חיפוש אירועים">
+        </div>
+        
+        <div class="filter-box">
+          <select id="categoryFilter" aria-label="סינון לפי קטגוריה">
+            <option value="">כל הקטגוריות</option>
+          </select>
+        </div>
+        
+        <div class="year-selector" id="yearSelectorWrap">
+          <label style="display:flex;align-items:center;gap:6px">
+            <input type="checkbox" id="allYearsToggle" checked>
+            <span>כל השנים</span>
+          </label>
+          <span id="yearOnlyWrap">
+            <label for="yearInput">שנה:</label>
+            <input type="number" id="yearInput" value="2024" min="1900" max="2100" aria-label="בחר שנה להצגה">
+          </span>
+        </div>
+        
+        <div class="header-info" id="headerInfo" style="display: none;">
+          <span>השתמשו בחיפוש ובסינון למציאת אירועים ספציפיים</span>
+        </div>
+        
+        
+        
+        <div class="view-toggle">
+          <a id="assistantLinkBtn" class="btn btn-primary" href="#" target="_blank" rel="noopener noreferrer" style="display:none">האסיסטנט שלנו</a>
+          <button id="addEventBtn" class="btn btn-success">➕ הוסף אירוע</button>
+          <button id="viewerBtn" class="btn btn-primary active" style="display:none">👁️ צפייה</button>
+          <button id="adminBtn" class="btn btn-primary">⚙️</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- VIEWER SECTION -->
+    <section id="viewer" class="view-section active">
+      <div class="viewer-split">
+        <aside class="events-chrono">
+          <div class="chrono-header">
+            <img src="logo.png" alt="לוגו" class="logo">
+            <h3 id="chronoTitle">כל האירועים</h3>
+            <div id="chronoCount" class="chrono-count" aria-live="polite"></div>
+          </div>
+          <ul id="eventsChronoList"></ul>
+        </aside>
+        <div id="yearView" class="year-grid">
+        <h2 id="currentYearDisplay">2024</h2>
+        <div class="months-container">
+          <!-- Will be populated by JS -->
+        </div>
+        </div>
+        <div id="monthView" class="month-grid" style="display:none">
+        <div class="month-header">
+          <button id="prevMonth" class="btn-icon" aria-label="חודש קודם"> → חודש קודם</button>
+          <h2 id="currentMonthDisplay">ינואר 2024</h2>
+          <button id="nextMonth" class="btn-icon" aria-label="חודש הבא">חודש הבא ←</button>
+          <button id="backToYear" class="btn-back-to-year" aria-label="חזרה לתצוגה שנתית">↑ חזרה לתצוגה שנתית</button>
+        </div>
+        <div class="calendar-grid">
+          <div class="weekdays">
+            <div>א</div><div>ב</div><div>ג</div><div>ד</div><div>ה</div><div>ו</div><div>ש</div>
+          </div>
+          <div class="days-container">
+            <!-- Will be populated by JS -->
+          </div>
+        </div>
+      </div>
+      </div>
+    </section>
+
+    <!-- ADMIN SECTION -->
+    <section id="admin" class="view-section">
+      <div class="admin-toolbar">
+        <label for="excelFileInput" class="btn btn-secondary">
+          📤 טען Excel
+          <input type="file" id="excelFileInput" accept=".xlsx,.xls,.csv" hidden aria-label="טען קובץ Excel">
+        </label>
+        <button type="button" id="exportExcelBtn" class="btn btn-secondary" disabled>📥 ייצוא ל-Excel</button>
+        <label for="jsonFileInput" class="btn btn-secondary">
+          📂 טען events.json
+          <input type="file" id="jsonFileInput" accept=".json,application/json" hidden aria-label="טען קובץ events.json">
+        </label>
+        <button type="button" id="downloadJsonBtn" class="btn btn-secondary" disabled>💾 הורד events.json</button>
+        <button type="button" id="assistantLinkSettingsBtn" class="btn btn-secondary">🔗 הגדרות הכפתור המהיר</button>
+        <button type="button" id="themeAccentSettingsBtn" class="btn btn-secondary">🎨 עיצוב האתר</button>
+      </div>
+      
+      <div id="pendingEventsSection" style="margin-bottom: 24px; display: none;">
+        <h3 style="margin: 0 0 12px 0; color: var(--warning);">⏳ אירועים ממתינים לאישור</h3>
+        <div class="events-table-container">
+          <table id="pendingEventsTable" role="table" aria-label="טבלת אירועים ממתינים">
+            <thead>
+              <tr>
+                <th>תאריך</th>
+                <th>כותרת</th>
+                <th>תיאור</th>
+                <th>קטגוריה</th>
+                <th>פרטי המוסיפ/ה</th>
+                <th>פעולות</th>
+              </tr>
+            </thead>
+            <tbody id="pendingEventsTableBody">
+              <!-- Will be populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+      <div class="events-table-container">
+        <table id="eventsTable" role="table" aria-label="טבלת אירועים">
+          <thead>
+            <tr>
+              <th data-sort="date" class="sortable">תאריך <span class="sort-arrow"></span></th>
+              <th data-sort="title" class="sortable">כותרת <span class="sort-arrow"></span></th>
+              <th data-sort="description" class="sortable">תיאור <span class="sort-arrow"></span></th>
+              <th data-sort="category" class="sortable">קטגוריה <span class="sort-arrow"></span></th>
+              <th data-sort="tags" class="sortable">תגיות <span class="sort-arrow"></span></th>
+              <th data-sort="mediaSource" class="sortable">מקור מדיה <span class="sort-arrow"></span></th>
+              <th data-sort="webSource" class="sortable">מקור אתר <span class="sort-arrow"></span></th>
+              <th data-sort="officialDocument" class="sortable">מסמך רשמי <span class="sort-arrow"></span></th>
+              <th>פעולות</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Will be populated by JS -->
+          </tbody>
+        </table>
+      </div>
+      
+      <div id="noEventsMsg" class="empty-state" style="display:none">
+        <p>אין אירועים להצגה</p>
+        <p class="empty-hint">טען קובץ Excel או הוסף אירוע חדש</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- EVENTS MODAL -->
+  <dialog id="eventsModal" role="dialog" aria-labelledby="modalTitle">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modalTitle">אירועים בתאריך</h2>
+        <button class="btn-close" aria-label="סגור חלון">×</button>
+      </div>
+      <div class="modal-body">
+        <ul id="eventsList" class="events-list">
+          <!-- Will be populated by JS -->
+        </ul>
+        <p id="noEventsInDate" class="empty-state-small" style="display:none">אין אירועים בתאריך זה</p>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- EVENT FORM MODAL -->
+  <dialog id="eventFormModal" role="dialog" aria-labelledby="formTitle">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="formTitle">הוסף אירוע</h2>
+        <button class="btn-close" aria-label="סגור חלון">×</button>
+      </div>
+      <form id="eventForm" class="event-form">
+        <input type="hidden" id="eventId">
+        
+        <div class="form-group">
+          <label for="formDate">תאריך *</label>
+          <input type="text" id="formDate" required aria-required="true" placeholder="dd-mm-yyyy או yyyy">
+          <div id="formDateError" class="form-error" style="display:none; color: var(--danger); font-size: 12px; margin-top: 4px;"></div>
+        </div>
+        
+        <div class="form-group">
+          <label for="formCategory">קטגוריה</label>
+          <input type="text" id="formCategory" maxlength="50" list="categoriesList">
+          <datalist id="categoriesList"></datalist>
+        </div>
+        
+        <div class="form-group form-full-width">
+          <label for="formTitleInput">כותרת *</label>
+          <input type="text" id="formTitleInput" required aria-required="true" maxlength="200">
+          <div id="formTitleError" class="form-error" style="display:none; color: var(--danger); font-size: 12px; margin-top: 4px;"></div>
+        </div>
+        
+        <div class="form-group form-full-width">
+          <label for="formDescription">תיאור</label>
+          <textarea id="formDescription" rows="3" maxlength="500"></textarea>
+        </div>
+        
+        <div class="form-group form-full-width">
+          <label for="formTags">תגיות (מופרדות בפסיק)</label>
+          <input type="text" id="formTags" maxlength="100">
+        </div>
+        
+        <div class="form-group form-full-width">
+          <label for="formMediaSource">מקור מדיה</label>
+          <input type="text" id="formMediaSource" maxlength="300" placeholder="קישור לתמונה/וידאו או תיאור קצר">
+        </div>
+
+        <div class="form-group form-full-width">
+          <label for="formWebSource">מקור אתר</label>
+          <input type="text" id="formWebSource" maxlength="300" placeholder="קישור לאתר רלוונטי">
+        </div>
+
+        <div class="form-group form-full-width">
+          <label for="formOfficialDocument">מסמך רשמי</label>
+          <input type="text" id="formOfficialDocument" maxlength="300" placeholder="קישור/הפניה למסמך רשמי">
+        </div>
+        
+        <div class="form-group form-full-width" id="submitterInfoSection" style="display: none; border-top: 2px solid var(--outline); padding-top: 12px; margin-top: 8px; margin-bottom: 0;">
+          <label style="font-weight: 600; font-size: 16px; color: var(--text); margin-bottom: 8px; display: block;">פרטי המוסיפ/ה</label>
+        </div>
+        <div class="form-group" id="submitterNameGroup" style="display: none;">
+          <label for="formSubmitterName">שם מלא *</label>
+          <input type="text" id="formSubmitterName" maxlength="100" required>
+        </div>
+        <div class="form-group" id="submitterIdGroup" style="display: none;">
+          <label for="formSubmitterId">מס עובד *</label>
+          <input type="text" id="formSubmitterId" maxlength="50" required>
+        </div>
+        
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" id="cancelForm">ביטול</button>
+          <button type="submit" class="btn btn-success">שמור</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- PASSWORD MODAL -->
+  <dialog id="passwordModal" role="dialog" aria-labelledby="passwordModalTitle">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="passwordModalTitle">נדרשת סיסמה</h2>
+        <button class="btn-close" aria-label="סגור חלון">×</button>
+      </div>
+      <div class="modal-body">
+        <form id="passwordForm" class="password-form">
+          <div class="form-group">
+            <label for="passwordInput">הזינו סיסמה:</label>
+            <input type="password" id="passwordInput" required aria-required="true" autofocus>
+          </div>
+          <div id="passwordError" class="password-error" style="display:none; color: var(--danger); margin-top: 8px; font-size: 14px;"></div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-success">אישור</button>
+            <button type="button" class="btn btn-secondary" id="cancelPassword">ביטול</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- ASSISTANT LINK SETTINGS MODAL -->
+  <dialog id="assistantLinkModal" role="dialog" aria-labelledby="assistantLinkModalTitle">
+    <div class="modal-content modal-content-sm">
+      <div class="modal-header">
+        <h2 id="assistantLinkModalTitle">הגדרות הכפתור המהיר</h2>
+        <button class="btn-close" aria-label="סגור חלון">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="assistantLinkLabelInput">שם הכפתור</label>
+          <input type="text" id="assistantLinkLabelInput" maxlength="80" placeholder="האסיסטנט שלנו">
+        </div>
+        <div class="form-group">
+          <label for="assistantLinkUrlInput">קישור (נפתח בחלון חדש)</label>
+          <input type="url" id="assistantLinkUrlInput" maxlength="500" placeholder="https://...">
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" id="cancelAssistantLinkBtn">ביטול</button>
+          <button type="button" id="saveAssistantLinkBtn" class="btn btn-success">שמור</button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- THEME / SITE BRANDING MODAL -->
+  <dialog id="themeAccentModal" role="dialog" aria-labelledby="themeAccentModalTitle">
+    <div class="modal-content modal-content-sm">
+      <div class="modal-header">
+        <h2 id="themeAccentModalTitle">עיצוב האתר</h2>
+        <button class="btn-close" aria-label="סגור חלון">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="siteTitleInput">שם הדף</label>
+          <input type="text" id="siteTitleInput" maxlength="60" placeholder="חודשים מספרים">
+        </div>
+        <div class="form-group">
+          <label for="themeAccentInput">צבע ראשי (כפתורים, מסגרות, כותרות)</label>
+          <div class="theme-accent-row">
+            <input type="color" id="themeAccentInput" value="#e07020" aria-label="בחירת צבע ראשי">
+            <div class="theme-accent-hex-field">
+              <span class="theme-accent-hash" aria-hidden="true">#</span>
+              <input type="text" id="themeAccentHexInput" class="theme-accent-hex-input" maxlength="6" spellcheck="false" autocomplete="off" aria-label="ערך צבע הקסדצימלי" value="e07020" dir="ltr">
+            </div>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" id="resetThemeAccentBtn">איפוס לכתום</button>
+          <button type="button" class="btn btn-secondary" id="cancelThemeAccentBtn">ביטול</button>
+          <button type="button" id="saveThemeAccentBtn" class="btn btn-success">שמור</button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- TOAST NOTIFICATIONS -->
+  <div id="toastContainer" class="toast-container" role="status" aria-live="polite"></div>
+
+  <script src="xlsx.full.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
+
